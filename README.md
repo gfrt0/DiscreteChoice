@@ -10,4 +10,4 @@ Modifications of note:
 - Added the possibility of not using analytical gradient in likelihood (though it is advisable to do so);
 - The likelihood/gradient function is modified to run faster; more comments add context to commands.
 
-To run: parameters are defined and data is imported by `mxlmsl.jl`. Note the `data.txt` called in the file is available [in Train's original upload](https://eml.berkeley.edu/Software/source_code/train_mxlmsl_06.zip).
+To run: parameters are defined and data is imported by `mxlmsl.jl`. Note the `data.txt` called in the file is available from [Train's original upload](https://eml.berkeley.edu/Software/source_code/train_mxlmsl_06.zip). `loglik.jl` and `llgrad2.jl` are included but the script only calls `llg.jl`, which supersedes the aforementioned files.
