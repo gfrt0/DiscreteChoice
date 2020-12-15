@@ -1,5 +1,4 @@
-# DiscreteChoice
-## Estimators for Discrete Choice models, collected as I go. 
+# Estimators for Discrete Choice models, collected as I go. 
 
 ### Revelt Train (1998)
 This is a straightforward port of Kenneth Train's [Mixed Logit Maximum Simulated Likelihood](https://eml.berkeley.edu/Software/abstracts/train1006mxlmsl.html) code
