@@ -20,5 +20,7 @@ as detailed in Train (2016; publisher version [here](https://eml.berkeley.edu/~t
 
 Modifications of note: 
 - Removed the possibility to use GPU computing (could be added, I am not acquainted with Julia possibilities);
+- Added the possibility to estimate the model in preference space;
+- Added the possibility to not subset from S to S_r (see Train 2016, p. 42).
 
 To run: parameters are defined and data is imported by `FlexibleWtp.jl`. Note the `videodata100.mat` called in the file is available from [Train's original upload](http://eml.berkeley.edu/~train/flexcodes.zip). Estimation is performed by `doestimation.jl`, and bootstrap is available via `boot.jl`. 
