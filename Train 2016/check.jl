@@ -139,18 +139,18 @@ function check()
       return
    end;
 
-   if size(WTP_Range, 2) != 2;
-      println(@sprintf "WTP_Range must have 2 columns and yet it is set to have %d. \nProgram terminated.\n" size(WTP_Range, 2));
+   if size(X_Range, 2) != 2;
+      println(@sprintf "X_Range must have 2 columns and yet it is set to have %d. \nProgram terminated.\n" size(X_Range, 2));
       return
    end;
 
-   if size(WTP_Range, 1) != size(IDV, 1);
-      println("WTP_Range must have the same length as IDV. \nProgram terminated.\n");
+   if size(X_Range, 1) != size(IDV, 1);
+      println("X_Range must have the same length as IDV. \nProgram terminated.\n");
       return
    end;
 
-   if sum(WTP_Range[:, 1] .>= WTP_Range[:, 2]) >0;
-      println("The second column of WTP_Range must exceed the first column in all rows. \nProgram terminated.\n");
+   if sum(X_Range[:, 1] .>= X_Range[:, 2]) >0;
+      println("The second column of X_Range must exceed the first column in all rows. \nProgram terminated.\n");
       return
    end;
 
