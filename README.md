@@ -16,7 +16,7 @@ To run: parameters are defined and data is imported by `mxlmsl.jl`. Note the `da
 
 ### Train (2016)
 This is a straightforward port of Kenneth Train's [Mixed logit with a flexible mixing distribution](https://eml.berkeley.edu/~train/flexsplash.html) code
-as detailed in Train (2016; publisher version [here](https://eml.berkeley.edu/~train/flexible.pdf)). 
+as detailed in Train (2016; publisher version [here](https://eml.berkeley.edu/~train/flexible.pdf)). This paper generalises ideas found in Section 6 of Train (2008, publisher version [here](https://eml.berkeley.edu/~train/EMtrain.pdf)).
 
 Modifications of note: 
 - Removed the possibility to use GPU computing (could be added, I am not acquainted with Julia possibilities);
