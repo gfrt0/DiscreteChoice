@@ -4,11 +4,11 @@
 
 function doestimation()
 
-    println("\nStart estimation\n");
+    println("\nStart estimation.\n");
     println("\nThe negative of the log-likelihood is minimized, which is the same as maximizing the log-likelihood.\n");
 
     global res = optimize(Optim.only_fg!(flexll!), StartB, BFGS(),
-                Optim.Options(g_tol = 1e-5, f_calls_limit = 10000, x_tol = PARAMTOL, f_tol = LLTOL, iterations = MAXITERS, store_trace = true, extended_trace = true))
+                Optim.Options(g_tol = GTOL, f_calls_limit = 10000, x_tol = PARAMTOL, f_tol = LLTOL, iterations = MAXITERS, store_trace = true, extended_trace = true))
 
     global θhat = Optim.minimizer(res);
     global converged = Optim.converged(res);

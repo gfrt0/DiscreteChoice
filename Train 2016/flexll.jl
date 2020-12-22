@@ -20,8 +20,8 @@ function flexll!(F, G, θ)
     mix_probs = sum(logit_w, dims = 2);                                    # NP x 1
     
     if G != nothing 
-        condw = logit_w ./ mix_probs;                                      # NP x NDRAWS
-        g  = (condw - w) .* Z;                                             # NP x NDRAWS x NZ
+        h = logit_w ./ mix_probs;                                          # NP x NDRAWS
+        g  = (h - w) .* Z;                                                 # Train 2016, eq. 10: [h(β_r | α) - w(β_r | α)] × z(β_r). NP x NDRAWS x NZ
         G .= vec(- sum(sum(g, dims = 1), dims = 2));                       # 1 x NZ, to minimise
     end;
 

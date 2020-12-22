@@ -240,6 +240,16 @@ function check()
    #    return
    # end
 
+   if subsetS ∉ [0, 1];
+      println(@sprintf "subsetS must be 0 or 1, but it is set to %d. \nProgram terminated.\n" subsetS);
+      return
+   end
+
+   if subsetS == 0 & NDRAWS < NGridPts;
+      println(@sprintf "If subsetS = 0, you must specify NDRAWS ≥ NGridPts (preferably a direct multiple, or this will be enforced). \nProgram terminated.\n" subsetS);
+      return
+   end
+
    if ceil(MAXITERS) != MAXITERS| MAXITERS < 1;
       println(@sprintf "MAXITERS must be a positive integer, but it is set to %d. \nProgram terminated.\n" MAXITERS);
       return

@@ -2,8 +2,8 @@
 #The variables are given in an array that is NPxNDRAWSxNZ
 # where NZ is the number of these variables
 
-#ZTYPE determines the kind of variables to create
-# 1=polynomial, 2= step function, 3=spline
+# ZTYPE determines the kind of variables to create
+# 1 = polynomial, 2 = step function, 3 = spline
 
 function createZ()
 

@@ -31,12 +31,12 @@ function boot(XMAT)
             thisx[:, 1] = r .* ones(Int64, size(thisx, 1), 1);
             XMAT = cat(XMAT, thisx, dims = 1);   
         end
-        println(@sprintf "Done with optimisation of bootstrap sample " ξ)
+        println(@sprintf "Done with optimisation of bootstrap sample %d" ξ)
         XMAT[:, 2] = CSID_Original;
         PROBS, BETAS = createdrawswtpprobs()
         Z = createZ()
         res = optimize(Optim.only_fg!(flexll!), StartB, BFGS(),
-        Optim.Options(g_tol = 1e-5, f_calls_limit = 10000, x_tol = PARAMTOL, f_tol = LLTOL, iterations = MAXITERS, store_trace = true, extended_trace = true))
+        Optim.Options(g_tol = GTOL, f_calls_limit = 10000, x_tol = PARAMTOL, f_tol = LLTOL, iterations = MAXITERS, store_trace = true, extended_trace = true))
         paramhold[:, ξ] = Optim.minimizer(res);
         mnhold[:, ξ], stdhold[:, ξ], cc, freqhold[:, :, ξ], midhold[:, :, ξ] = stats(Optim.minimizer(res), NBins);
         corrhold[:, :, ξ] = Statistics.cov2cor!(cc[2:end, 2:end], sqrt.(diag(cc[2:end, 2:end])));

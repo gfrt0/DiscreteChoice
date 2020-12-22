@@ -3,19 +3,18 @@
 # Ported to Julia by Giuseppe Forte Dec, 22, 2020.
 
 # NOTES 
-# hessian (inverted) always provided
-# removed the possibility to use GPU 
+# make sure all of the include()d files (and the data) are in the same directory as this file, or modify this file as you need.
 
 # Need to install Legendre.jlfrom https://github.com/jmert/Legendre.jl
 
-using MAT, Printf, Random, Statistics, SpecialFunctions, Optim, NLSolversBase, ForwardDiff, LinearAlgebra, SparseArrays, Legendre
+cd("/Users/gforte/Dropbox (Personal)/git/DiscreteChoice/Train 2016")
+
+using MAT, Printf, Random, Statistics, StatsBase, SpecialFunctions, Optim, NLSolversBase, ForwardDiff, LinearAlgebra, SparseArrays, Legendre
 
 include("check.jl")
 include("createZ.jl")
 include("createdrawswtpprobs.jl")
 include("flexll.jl")
-include("createw.jl")
-include("histwgt.jl")
 include("stats.jl")
 include("doestimation.jl")
 include("boot.jl")
@@ -58,8 +57,8 @@ NROWS = NCS * 5;
 # choice situation.
 # The remaining columns of XMAT can be any variables.
 
-data = matopen("videodata100.mat");  #This loads XMAT with the variables below
-XMAT = read(data, "XMAT")
+data = matopen("/Users/gforte/Desktop/flexcodes/videodata100.mat");  #This loads XMAT with the variables below
+XMAT = read(data, "XMAT");
 
 # To help you keep up with the variables, list the variables in XMAT here.
 # NOTES for XMAT for example run:
@@ -105,37 +104,56 @@ NAMES =["price";"commer";"fast";"more TV";"more both";"share use"; "share all";"
 # Give the minimum value first, and then the maximum value *without* a semicolon between.
 # Since α * Price is subtracted from utility and price is positive,
 # α must be positive. That is: both values of P_Range must be ≥ 0.
-P_Range=[0 2];
+P_Range = [0 2];
 
-# Give the range for the WTP for each non-price variable.
-# WTP_Range is a matrix with one row for each variable in IDV, with 2 columns. 
+# Do you want to estimate a model in WTP space (Train Weeks, 2005) or in preference space?
+# wtpspace = 1 does the former, wtpspace = 0 the latter.
+wtpspace = 0
+
+# Give the range for the discrete approximating support for each non-price variable.
 # The first column gives the lower limit and the second column gives the upper limit.
 # Limits are inclusive, in that value of the limit is included.
 # Put colons between range for each variable.
-WTP_Range=[-9.44    6.32;
-           -3.31   11.21;
-          -10.42    9.02; # I set these as 2 std dev above and below mean WTP,
-           -2.08    8.00; # with mean and std dev estimated by a mixed
-           -5.62    4.38; # logit in wtp space with all normals for WTPs.
-          -16.20   10.80;
-          -66.10   11.58];  
+X_Range = [ - 1    1;
+            - 1    1;
+            - 1    1;  
+            - 1    1;
+            - 1    1;
+            - 1    1;
+            - 1    1;];
+
+# For WTP range, Kenneth Train notes: I set these as 2 std dev above and below mean WTP, 
+# with mean and std dev estimated by a mixed logit in wtp space with all normals for WTPs.
+# Here is his original WTP range: 
+# X_Range = [-9.44    6.32;
+#            -3.31   11.21;
+#           -10.42    9.02;  
+#            -2.08    8.00;  
+#            -5.62    4.38; 
+#           -16.20   10.80;
+#           -66.10   11.58];  
+# For preference range, I find specifying wide Ranges and then progressively zooming in works well.
 
 #Do not change the next line
-COEF = [P_Range; WTP_Range];
-
+COEF = [P_Range; X_Range];
 
 # Give the number of points in each dimension to define the grid for the
-# parameter space. The grid includes the two endpoints given in P_Range and WTP_Range. 
+# parameter space. The grid includes the two endpoints given in P_Range and X_Range. 
 # So if you want a grid with eg 1000 intervals between these endpoints, then set NGridPts = 1001.
 # The total number of points in the grid is NGridPts^NV
 NGridPts = 1000;
 
-# Number of random draws from the parameter space to use in simulation for each person
+# Choose whether to estimate the model using the entire set of approximating points S or a subset
+# S_r ⊂ S as done by Train (2016). subsetS = 1 runs Train's version, subsetS = 0 avoid simulating S.
+subsetS = 1
+
+# Number of random draws from the parameter space to use in simulation for each person.
+# If subsetS = 0, please set NDRAWS ≥ NGridPts
 NDRAWS = 2000;
 
 # Specify the integer seed to use in the random number generator for simulation
 ThisSeed = 1234;
-Random.seed!(ThisSeed)
+Random.seed!(ThisSeed);
 
 # Specify the type of variables that you want to describe the marginal densities of
 # the random parameters. The options are:
@@ -192,25 +210,25 @@ elseif ZTYPE == 3
     if CrossCorr == 1;
         NZ = NZ + 2 * (NV - 1) + (NV - 1) * (NV - 2) / 2;
     end
-end
+end;
 NZ = Int(NZ)
 
 #Set the starting values for the coefficients of the Z variables
 StartB = rand(NZ, 1);  
 
-#The code will estimate the coefficients of the Z variables and create
+# The code will estimate the coefficients of the Z variables and create
 # a histogram for each random utility parameter based on the estimated
 # coefficients of the Z variables.
-#Specify the number of bins you want in the histogram.
-#More bins gives more detailed shapes but results in more simulation noise in each bin.
-NBins=12;
+# Specify the number of bins you want in the histogram.
+# More bins gives more detailed shapes but results in more simulation noise in each bin.
+NBins = 12;
 
-#Do you want to bootstrap the standard errors for estimated coefficients
-#and summary statistics?
-#Set WantBoot=1 for yes, =0 for no.
-#Bootstrapping takes much longer than original estimation, and so
-#you might want to bootstrap only after you are pretty sure of your model
-WantBoot = 1;
+# Do you want to bootstrap the standard errors for estimated coefficients
+# and summary statistics?
+# Set WantBoot=1 for yes, =0 for no.
+# Bootstrapping takes much longer than original estimation, and so
+# you might want to bootstrap only after you are pretty sure of your model
+WantBoot = 0;
  
 #If WantBoot = 1, specify the number of resamples:
 NReps = 25;
@@ -222,7 +240,6 @@ NReps = 25;
 #toolbox installed on your machine. It helps to have a fast gpu.
 #The gpu processor speeds up estimation and bootstrapping considerably.
 #I do not know enough about Julia GPU packages to port.
-#YesGPU = 0;
 
 # ITERATIONS 
 # Specify the maximum number of iterations for estimation.
@@ -231,24 +248,24 @@ NReps = 25;
 MAXITERS = 2000;
 
 #CONVERENCE TOLERANCE.
-# Specify the convergence tolerance for change in parameters as PARAMTOL
-# and the change in log-likelihood as LLTOL. 
+# Specify the convergence tolerance for change in parameters as PARAMTOL,
+# for change in log-likelihood as LLTOL, and for change in gradient as GTOL.
 PARAMTOL = 1e-8;
 LLTOL    = 1e-8;
+GTOL     = 1e-8;
 
 #Do not change the next lines. It runs the model and prints out the results.
-check_ok = check()  
+check_ok = check()
 if check_ok
-    
     setuptic = @elapsed begin
     PROBS, BETAS = createdrawswtpprobs();
     Z = createZ();
-    end
+    end;
     println(@sprintf "\nData setup took %3.2f seconds.\n" setuptic);
     
     doestimation()
 
     if WantBoot == 1
-       boot(XMAT)
+        boot(XMAT)
     end
 end

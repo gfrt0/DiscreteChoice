@@ -4,7 +4,11 @@
 
 function stats(θ,NBins)
 
-    w = createw(θ); # NP x NDRAWS
+    w = dropdims(sum(permutedims(Z, (3, 1, 2)) .* θ, dims = 1), dims = 1); # NP x NDRAWS
+    w[w .< -500] .= -500;                                                  # As a precaution to prevent machine ∞ when exponentiating
+    w[w .> 500]  .=  500;                                                  # As a precaution to prevent machine ∞ when exponentiating
+    w = exp.(w);
+    w = w ./ sum(w, dims = 2);                                             # NP x NDRAWS
     mn = zeros(NV, 1);
     v  = zeros(NV, 1);
     cc = zeros(NV, NV);
@@ -25,9 +29,13 @@ function stats(θ,NBins)
                 cc[thisc, r] = cc[r, thisc];
             end
         end
-        histw, midpt = histwgt(reshape(thiscoef, NP * NDRAWS, 1), ww, COEF[r, 1], COEF[r, 2], NBins); 
+        δ = (COEF[r, 2] - COEF[r, 1]) / NBins; 
+        subs = ceil.((reshape(thiscoef, NP * NDRAWS, 1) .- COEF[r, 1]) / δ); 
+        subs[subs .== 0] .= 1;
+        midbin = ((COEF[r, 1] + δ / 2):δ:COEF[r, 2])';
+        histw = [sum(ww[subs .== j]) for j in 1:NBins]
         freqbins[r, :] = histw ./ sum(histw);
-        midbins[r, :]  = midpt;
+        midbins[r, :]  = midbin;
     end
     stdv = sqrt.(v);
 
