@@ -13,3 +13,12 @@ Modifications of note:
 - The likelihood/gradient function is modified to run faster; more comments add context to commands.
 
 To run: parameters are defined and data is imported by `mxlmsl.jl`. Note the `data.txt` called in the file is available from [Train's original upload](https://eml.berkeley.edu/Software/source_code/train_mxlmsl_06.zip). `loglik.jl` and `llgrad2.jl` are included but the script only calls `llg.jl`, which supersedes the aforementioned files.
+
+### Train (2016)
+This is a straightforward port of Kenneth Train's [Mixed logit with a flexible mixing distribution](https://eml.berkeley.edu/~train/flexsplash.html) code
+as detailed in Train (2016; publisher version [here](https://eml.berkeley.edu/~train/flexible.pdf)). 
+
+Modifications of note: 
+- Removed the possibility to use GPU computing (could be added, I am not acquainted with Julia possibilities);
+
+To run: parameters are defined and data is imported by `FlexibleWtp.jl`. Note the `videodata100.mat` called in the file is available from [Train's original upload](http://eml.berkeley.edu/~train/flexcodes.zip). Estimation is performed by `doestimation.jl`, and bootstrap is available via `boot.jl`. 
