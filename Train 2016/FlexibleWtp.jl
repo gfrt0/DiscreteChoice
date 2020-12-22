@@ -7,8 +7,6 @@
 
 # Need to install Legendre.jlfrom https://github.com/jmert/Legendre.jl
 
-cd("/Users/gforte/Dropbox (Personal)/git/DiscreteChoice/Train 2016")
-
 using MAT, Printf, Random, Statistics, StatsBase, SpecialFunctions, Optim, NLSolversBase, ForwardDiff, LinearAlgebra, SparseArrays, Legendre
 
 include("check.jl")
