@@ -55,7 +55,7 @@ NROWS = NCS * 5;
 # choice situation.
 # The remaining columns of XMAT can be any variables.
 
-data = matopen("/Users/gforte/Desktop/flexcodes/videodata100.mat");  #This loads XMAT with the variables below
+data = matopen("videodata100.mat");  #This loads XMAT with the variables below
 XMAT = read(data, "XMAT");
 
 # To help you keep up with the variables, list the variables in XMAT here.
