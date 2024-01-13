@@ -24,3 +24,6 @@ Modifications of note:
 - Added the possibility to not subset from S to S_r (see Train 2016, p. 42).
 
 To run: parameters are defined and data is imported by `FlexibleWtp.jl`. Note the `videodata100.mat` called in the file is available from [Train's original upload](http://eml.berkeley.edu/~train/flexcodes.zip). Estimation is performed by `doestimation.jl`, and bootstrap is available via `boot.jl`. 
+
+### Ackerberg (2009)
+This is a quick Monte Carlo example of the Importance Sampling idea in [Ackerberg (2009, QME)](https://link.springer.com/article/10.1007/s11129-009-9074-z) applied to discrete choice with random coefficients. I wrote this example to teach myself the basic idea behind the estimator, which I could not wrap my head around by reading the paper. The benefits of the estimator clearly lie beyond this simple example, in which IS is outperformed by a simple simulated likelihood estimator. It is also noteworthy how much the performance of the estimator depends on a good proposal density: if that is true in 1D, imagine in multiple dimensions! 
