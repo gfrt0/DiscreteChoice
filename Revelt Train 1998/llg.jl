@@ -64,15 +64,15 @@ function llg!(F, G, param)
     v = exp.(v);                                                                   # exp(V) = exp(x'β)
     v[isinf.(v)] .= 10^20;                                                         # As precaution when exp(v) is too large for machine
     v = v .* s;                                                                    # Only consider choices that were actually available to the consumer.
-    pp = 1 ./ (1.0 .+ sum(v, dims = 1));                                           # Likelihood of individual history: Π_t {exp(V_*t) / Σ_j[exp(V_jt)]} = Π_t { 1 / (1 + Σ_{j ≂̸ *} [exp(V_jt - V-*t)]}
+    pp = 1 ./ (1.0 .+ sum(v, dims = 1));                                           # Likelihood of individual history: Π_t {exp(V_*t) / Σ_j[exp(V_jt)]} = Π_t { 1 / (1 + Σ_{j ≂̸ *} [exp(V_jt - V_*t)]}
 
-    ppp = dropdims(prod(pp, dims = 2), dims = (1, 2))
+    ppp = dropdims(prod(pp, dims = 2), dims = (1, 2))                              # Π_t ∀ i. 
     p = reshape(sum(ppp, dims = 2) ./ ndraws, (np))                                # Revelt Train (1998, eq.3): (1/R) * Σ_r S_n(β) * Σ_t Σ_j (- L (∂βx / ∂θ)).                                   
     p[isnan.(p)] .= 1;                                                             # Change missing values to 1, as a precaution. 
 
     if G != nothing   # Calculate gradient
 
-        gg = permutedims(permutedims(v, (3, 4, 2, 1)) .* permutedims(pp, (3, 4, 2, 1)), (4, 3, 1, 2));        # Probs for all nonchosen alts NALTMAX-1 x NCSMAX x NP x ndraws                
+        gg = permutedims(permutedims(v, (3, 4, 2, 1)) .* permutedims(pp, (3, 4, 2, 1)), (4, 3, 1, 2));        # Probs for all nonchosen alts. NALTMAX-1 x NCSMAX x NP x ndraws                
         gg = reshape(gg, (naltmax - 1, ncsmax, 1, np, ndraws))
 
         # ∂ϕ
