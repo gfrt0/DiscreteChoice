@@ -30,29 +30,29 @@ for i ∈ 1:N
     yᵢⱼ[i, sample(collect(1:(J + 1)), Weights(sᵢⱼ[i, :]), 1)] .= 1.0 
 end
 
+# objects useful below 
+pᵢᵣⱼ = repeat(pᵢⱼ, inner = (R, 1))
+xᵢᵣⱼ = repeat(xᵢⱼ, inner = (R, 1))
+βᵢᵣ = zeros(Float64, 2, N * R)
+
 ####################################
 ### maximum simulated likelihood ###
 ####################################
 
-T(a, b) = [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))] * [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))]'
+# T(a, b) = [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))] * [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))]'
+T(a, b) = [exp(a) 0.0; 0.0 exp(b)] * [exp(a) 0.0; 0.0 exp(b)]'
 T(θ) = T(θ[3], θ[4])
 
 oᵢᵣ = rand(MvNormal([0.0, 0.0], [1.0 0.0; 0.0 1.0]), N * R)
 
-pᵢᵣⱼ = repeat(pᵢⱼ, inner = (R, 1))
-xᵢᵣⱼ = repeat(xᵢⱼ, inner = (R, 1))
-
-βᵢᵣ = zeros(Float64, 2, N * R)
-sᵢᵣⱼ = zeros(Float64, N * R, J + 1)
-
-function sᵢⱼ_sim(ϑ, βᵢᵣ, sᵢᵣⱼ) 
+function sᵢⱼ_sim(ϑ, βᵢᵣ) 
     βᵢᵣ  .= ϑ[1:2] .+ T(ϑ) * oᵢᵣ 
-    @views sᵢᵣⱼ  = [exp(βᵢᵣ[1, :] * pᵢᵣⱼ + βᵢᵣ[2, :] * xᵢᵣⱼ) ones(Float64, N * R)]
+    @views sᵢᵣⱼ  = [exp.(βᵢᵣ[1, :] .* pᵢᵣⱼ + βᵢᵣ[2, :] .* xᵢᵣⱼ) ones(Float64, N * R)]
     sᵢᵣⱼ .= sᵢᵣⱼ ./ sum(sᵢᵣⱼ, dims = 2) 
     return dropdims(mean(reshape(sᵢᵣⱼ, R, N, J + 1), dims = 1), dims = 1)
 end 
 
-lnℒ_msl(ϑ) = - sum( log.( sum( yᵢⱼ .* sᵢⱼ_sim(ϑ, βᵢᵣ, sᵢᵣⱼ), dims = 2 ) ) )
+lnℒ_msl(ϑ) = - sum( log.( sum( yᵢⱼ .* sᵢⱼ_sim(ϑ, βᵢᵣ), dims = 2 ) ) )
 
 MSL = optimize(lnℒ_msl, [ -0.25 0.25 -.7 -.7 ], NelderMead(), 
                Optim.Options(g_tol = 1e-12, time_limit = 100, show_trace = true, show_every = 10))
@@ -65,10 +65,10 @@ MSL = optimize(lnℒ_msl, [ -0.25 0.25 -.7 -.7 ], NelderMead(),
 ########################################################
 
 function sᵢᵣⱼ_is(ϑ, oᵢᵣ)
-    @.        βᵢᵣ   = oᵢᵣ
-    @views @. sᵢᵣⱼ  = [exp(βᵢᵣ[1, :] * pᵢᵣⱼ + βᵢᵣ[2, :] * xᵢᵣⱼ) ones(Float64, N * R)]
-              sᵢᵣⱼ .= sᵢᵣⱼ ./ sum(sᵢᵣⱼ, dims = 2) 
-              𝒻ᵢᵣ   = pdf(MvNormal([ϑ[1], ϑ[2]], T(ϑ)), oᵢᵣ) # density under proposal density
+    βᵢᵣ  .= oᵢᵣ
+    @views sᵢᵣⱼ = [exp.(βᵢᵣ[1, :] .* pᵢᵣⱼ + βᵢᵣ[2, :] .* xᵢᵣⱼ) ones(Float64, N * R)]
+    sᵢᵣⱼ .= sᵢᵣⱼ ./ sum(sᵢᵣⱼ, dims = 2) 
+    𝒻ᵢᵣ   = pdf(MvNormal([ϑ[1], ϑ[2]], T(ϑ)), oᵢᵣ) # density under proposal density
     return sᵢᵣⱼ, 𝒻ᵢᵣ
 end 
  
@@ -109,7 +109,7 @@ IS3
 ### iteratively updating the proposal distribution ###
 ######################################################
 
-function importancesampling_iterative(proposal_theta; time_limit = 100.0, nupdates = 1)
+function importancesampling_iterative(proposal_theta; time_limit = 100000.0, nupdates = 1)
   
     time_run = 0.0 
     g_converged = false
@@ -152,7 +152,7 @@ function importancesampling_iterative(proposal_theta; time_limit = 100.0, nupdat
 end 
 
 ISI1, ISI1t = importancesampling_iterative([ 0.0 0.0 0.0 0.0 ])
-ISI3 = importancesampling_iterative([μ... log.(diag(cholesky(Σ).factors))...])
+ISI3, ISI3t = importancesampling_iterative([μ... log.(diag(cholesky(Σ).factors))...])
 
-ISI1
-ISI3
+ISI1t
+ISI3t
