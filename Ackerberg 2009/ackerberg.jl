@@ -6,7 +6,6 @@ N = 5000 # number of simulated individuals
 J = 3    # number of inside choices
 R = 100  # simulated shocks per individual
 
-
 μ = [-1, .5]
 Σ = [.5 0; 0 .9]
 
@@ -39,9 +38,9 @@ xᵢᵣⱼ = repeat(xᵢⱼ, inner = (R, 1))
 ### maximum simulated likelihood ###
 ####################################
 
-# T(a, b) = [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))] * [exp(max(a, -4.0)) 0.0; 0.0 exp(max(b, -4.0))]'
-T(a, b) = [exp(a) 0.0; 0.0 exp(b)] * [exp(a) 0.0; 0.0 exp(b)]'
-T(θ) = T(θ[3], θ[4])
+A(a, b) = [exp(a) 0.0; 0.0 exp(b)]
+A(θ) = A(θ[3], θ[4])
+T(θ) = A(θ) * A(θ)'
 
 oᵢᵣ = rand(MvNormal([0.0, 0.0], [1.0 0.0; 0.0 1.0]), N * R)
 
@@ -112,26 +111,24 @@ IS3
 function importancesampling_iterative(proposal_theta; time_limit = 100000.0, nupdates = 1)
   
     time_run = 0.0 
-    g_converged = false
     θ = proposal_theta
     iter = 0
 
     uᵢᵣ = rand(MvNormal([0.0, 0.0], [1.0 0.0; 0.0 1.0]), N * R) # draws from N(0, I) to be held fixed  
     
-    while (time_run < time_limit) & (g_converged == false) & (iter < nupdates)
+    while (time_run < time_limit) & (iter < nupdates)
 
         rθ = round.([θ[1:2]... diag(T(θ))...], digits = 3)
         print("Proposal distribution updated to $rθ. Runtime: $time_run. \n")
 
-        oᵢᵣ = θ[1:2] .+ T(θ) * uᵢᵣ # updating draws from proposal density using affine transformation
+        oᵢᵣ = θ[1:2] .+ A(θ) * uᵢᵣ # updating draws from proposal density using affine transformation
     
         sᵢᵣⱼ, 𝒻ᵢᵣ = sᵢᵣⱼ_is(θ, oᵢᵣ)
-            
-        IS = optimize(ϑ -> lnℒ_is(ϑ, yᵢⱼ, sᵢᵣⱼ, 𝒻ᵢᵣ, oᵢᵣ), [ -0.25 0.25 -.7 -.7 ], NelderMead(), 
-                      Optim.Options(g_tol = 1e-12, time_limit = time_limit, show_trace = true, show_every = 5))
+        
+        IS = optimize(ϑ -> lnℒ_is(ϑ, yᵢⱼ, sᵢᵣⱼ, 𝒻ᵢᵣ, oᵢᵣ), randn(4), NelderMead(), 
+                      Optim.Options(g_tol = 1e-12, time_limit = 100, show_trace = true, show_every = 5))
         θ = Optim.minimizer( IS )
         
-        g_converged = IS.g_converged
         time_run += Optim.time_run(IS)
         iter += 1
     end 
@@ -140,19 +137,21 @@ function importancesampling_iterative(proposal_theta; time_limit = 100000.0, nup
     rθ = round.([θ[1:2]... diag(T(θ))...], digits = 3)
     print("Proposal distribution finally updated to $rθ. Runtime: $time_run. \n")
 
-    oᵢᵣ = θ[1:2] .+ T(θ) * uᵢᵣ
+    oᵢᵣ = θ[1:2] .+ A(θ) * uᵢᵣ
 
     sᵢᵣⱼ, 𝒻ᵢᵣ = sᵢᵣⱼ_is(θ, oᵢᵣ)
     
-    IS = optimize(ϑ -> lnℒ_is(ϑ, yᵢⱼ, sᵢᵣⱼ, 𝒻ᵢᵣ, oᵢᵣ), θ, NelderMead(), 
-                  Optim.Options(g_tol = 1e-12, time_limit = 2 * time_limit, show_trace = true, show_every = 5))
+    IS = optimize(ϑ -> lnℒ_is(ϑ, yᵢⱼ, sᵢᵣⱼ, 𝒻ᵢᵣ, oᵢᵣ), randn(4), NelderMead(), 
+                  Optim.Options(g_tol = 1e-12, time_limit = time_limit, show_trace = true, show_every = 5))
     θ = Optim.minimizer( IS )
 
-    return θ, [θ[1:2]... diag(T(θ))...]
+    return [θ[1:2]... diag(T(θ))...]
 end 
 
-ISI1, ISI1t = importancesampling_iterative([ 0.0 0.0 0.0 0.0 ])
-ISI3, ISI3t = importancesampling_iterative([μ... log.(diag(cholesky(Σ).factors))...])
+ISI1 = importancesampling_iterative([ 0.0 0.0 0.0 0.0 ]; nupdates = 1)
+ISI2 = importancesampling_iterative([ 0.0 0.0 0.0 0.0 ]; nupdates = 4)
+ISI3 = importancesampling_iterative([ 0.0 0.0 0.0 0.0 ]; nupdates = 10)
 
-ISI1t
-ISI3t
+ISI1
+ISI2
+ISI3

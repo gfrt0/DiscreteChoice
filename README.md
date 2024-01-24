@@ -30,8 +30,10 @@ This is a quick Monte Carlo example of the Importance Sampling idea in [Ackerber
 
 The benefits of the estimator clearly lie beyond this simple example, in which IS is outperformed by a simple simulated likelihood estimator. 
 
-However, the example is complex enough to illustrate general problems with IS. 
-First, the performance of the estimator depends *heavily* on a good proposal density.
+However, the example is complex enough to illustrate general features of IS. 
+Most importantly, the performance of the estimator depends *heavily* on a good proposal density.
 This seems to lead to a natural extension: iteratively updating the proposal distribution. 
-The Julia script shows that, at the moment, this seems to perform very poorly.  
+The Julia script implements such iterative estimator: iterating delivers little improvement in this case, but it could be helpful in more complex models. 
+For example, one could iteratively obtain better proposal distributions by optimization with lax convergence criteria, and pursue optimization with stricter convergence criteria once the parameters of the proposal distribution seem to have converged.
+
 
